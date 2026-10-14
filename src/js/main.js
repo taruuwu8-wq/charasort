@@ -289,8 +289,8 @@ function display() {
 
   progressBar(`Battle No. ${battleNo}`, percent);
 
-  document.querySelector('.left.sort.image').src = leftChar.img;
-  document.querySelector('.right.sort.image').src = rightChar.img;
+  document.querySelector('.left.sort.image').src = makeCard(leftChar.name);
+  document.querySelector('.right.sort.image').src = makeCard(rightChar.name);
 
   
 
@@ -483,7 +483,7 @@ function result(imageNum = 3) {
   const imgRes = (char, num) => {
     const charName = reduceTextWidth(char.name, 'Arial 12px', 160);
     const charTooltip = char.name !== charName ? char.name : '';
-    return `<div class="result image"><div class="left"><span>${num}</span></div><div class="right"><img src="${char.img}"><div><span title="${charTooltip}">${charName}</span></div></div></div>`;
+    return `<div class="result image"><div class="left"><span>${num}</span></div><div class="right"><img src="${makeCard(char.name)}"><div><span title="${charTooltip}">${charName}</span></div></div></div>`;
   }
   const res = (char, num) => {
     const charName = reduceTextWidth(char.name, 'Arial 12px', 160);
@@ -763,6 +763,7 @@ function decodeQuery(queryString = window.location.search.slice(1)) {
  * Preloads images in the filtered character data and converts to base64 representation.
 */
 function preloadImages() {
+  return Promise.resolve();
   const totalLength = characterDataToSort.length;
   let imagesLoaded = 0;
 
@@ -832,5 +833,21 @@ function reduceTextWidth(text, font, width) {
     return reducedText + '..';
   }
 }
-
+function makeCard(name) {
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const lines = [];
+  let line = '';
+  name.split(' ').forEach(w => {
+    if (line && (line + ' ' + w).length > 14) { lines.push(line); line = w; }
+    else line = (line + ' ' + w).trim();
+  });
+  if (line) lines.push(line);
+  const lh = 26;
+  const startY = 100 - ((lines.length - 1) * lh) / 2;
+  const text = lines.map((l, i) =>
+    `<text x="100" y="${startY + i * lh}" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="20" fill="#fff">${esc(l)}</text>`
+  ).join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="#8a5cf6"/>${text}</svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
 window.onload = init;
